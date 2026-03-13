@@ -22,6 +22,10 @@ func main() {
 		commands.HandleInit()
 	case "cat-file":
 		commands.HandleCatfile(args)
+	case "hash-object":
+		commands.HandleHashObject(args)
+	case "ls-tree":
+		commands.HandleLsTree(args)
 	default:
 		fmt.Println("sub-command not supported")
 	}
