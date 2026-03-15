@@ -1,13 +1,8 @@
 package commands
 
 import (
-	"compress/zlib"
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 )
 
 func HandleHashObject(args []string) {
@@ -24,36 +19,11 @@ func HandleHashObject(args []string) {
 
 	filePath := args[1]
 
-	// raw file bytes
-	content, _ := os.ReadFile(filePath)
-	contentSize := len(content)
-
-	// \x00 is the NUL character (one byte)
-	header := fmt.Sprintf("blob %d\x00", contentSize)
-	store := header + string(content)
-
-	shaBytes := sha1.Sum([]byte(store))
-	sha := hex.EncodeToString(shaBytes[:])
 	//
-	// previous line is equivalent to this:
-	// sha := fmt.Sprintf("%x", shaBytes)
+	// TODO: we should check the object type?
+	// right now we're assuming Blob, which is false!
 	//
+	hash := writeBlob(filePath)
 
-	dir := sha[:2]
-	filename := sha[2:]
-
-	gitObjectPath := fmt.Sprintf(".git/objects/%s/%s", dir, filename)
-
-	//
-	// TODO: i don't know if this needed, because os.Create panics otherwise.
-	//
-	_ = os.MkdirAll(filepath.Dir(gitObjectPath), 0755)
-	f, _ := os.Create(gitObjectPath)
-
-	// compresses the file
-	w := zlib.NewWriter(f)
-	w.Write([]byte(store))
-	w.Close()
-
-	fmt.Println(sha)
+	fmt.Println(hash)
 }

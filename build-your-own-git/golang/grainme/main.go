@@ -26,6 +26,8 @@ func main() {
 		commands.HandleHashObject(args)
 	case "ls-tree":
 		commands.HandleLsTree(args)
+	case "write-tree":
+		commands.HandleWriteTree()
 	default:
 		fmt.Println("sub-command not supported")
 	}
