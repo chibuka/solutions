@@ -1,22 +1,24 @@
+/*
+ * init.go - Initialize a new git repository
+ *
+ * Creates the .git directory structure:
+ *     .git/HEAD       → points to refs/heads/main
+ *     .git/objects/   → the object database
+ *     .git/refs/      → branch and tag pointers
+ */
 package commands
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
 func HandleInit() {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Couldn't identify current working directory")
-	}
+	cwd, _ := os.Getwd()
 
-	// owner + group + other
-	// 4(r) + 2(w) + 1(x)
-	os.MkdirAll(".git/objects", 0755)
-	os.MkdirAll(".git/refs", 0755)
-	os.WriteFile(".git/HEAD", []byte("ref: refs/heads/main\n"), 0622)
+	_ = os.MkdirAll(".git/objects", 0755)
+	_ = os.MkdirAll(".git/refs", 0755)
+	_ = os.WriteFile(".git/HEAD", []byte("ref: refs/heads/main\n"), 0644)
 
-	fmt.Println("Initialized empty Git repository in", currentDir+"/.git")
+	fmt.Println("Initialized empty Git repository in", cwd+"/.git")
 }

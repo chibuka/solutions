@@ -1,8 +1,14 @@
 /*
- * this commands recursively snapshots the current working directory
- * into the object store, creating tree objects for each directory,
- * and prints the 40-chars SHA of the root tree.
+ * write_tree.go - Snapshot the working directory into tree objects
  *
+ * Usage: mygit write-tree
+ *
+ * Recursively walks the current directory (skipping .git/),
+ * creates blob objects for files and tree objects for directories,
+ * and prints the root tree SHA.
+ *
+ * Tree entry binary format: <mode> <name>\0<20-byte raw SHA>
+ * Mode 100644 = regular file, 40000 = directory.
  */
 package commands
 
@@ -13,46 +19,41 @@ import (
 	"path/filepath"
 )
 
-// take a dir path, writes a tree object to .git/objects and return its SHA.
+// writeTreeForDir recursively writes tree objects for a directory.
 func writeTreeForDir(dir string) string {
-	//
-	// os.ReadDir already returns them sorted, so you're good here.
-	// otherwise, we needed to do it manually.
-	//
+	// os.ReadDir returns entries sorted — git requires sorted tree entries
 	entries, _ := os.ReadDir(dir)
 
-	buffer := make([]byte, 0)
+	var buf []byte
 	for _, entry := range entries {
-		entryPath := filepath.Join(dir, entry.Name())
-		sha := ""
-		mode := "100644"
-
 		if entry.Name() == ".git" {
 			continue
 		}
 
-		if entry.Type().IsRegular() {
-			sha = writeBlob(entryPath)
-		}
+		entryPath := filepath.Join(dir, entry.Name())
+		var sha string
+		var mode string
+
 		if entry.Type().IsDir() {
-			// mode for dirs 40000
 			mode = "40000"
 			sha = writeTreeForDir(entryPath)
+		} else {
+			mode = "100644"
+			content, _ := os.ReadFile(entryPath)
+			sha = writeObject("blob", content)
 		}
 
-		hexToRaw, _ := hex.DecodeString(sha)
+		rawSha, _ := hex.DecodeString(sha)
 
-		// The format is <mode> <name>\0<raw-sha>
-		buffer = append(buffer, []byte(mode+" "+entry.Name()+"\x00")...)
-		buffer = append(buffer, hexToRaw...)
+		// <mode> <name>\0<20-byte raw SHA>
+		buf = append(buf, []byte(mode+" "+entry.Name()+"\x00")...)
+		buf = append(buf, rawSha...)
 	}
 
-	return writeTree(buffer)
+	return writeObject("tree", buf)
 }
 
 func HandleWriteTree() {
-	// Walk the current directory recursively (skip .git/)
 	cwd, _ := os.Getwd()
-	sha := writeTreeForDir(cwd)
-	fmt.Println(sha)
+	fmt.Println(writeTreeForDir(cwd))
 }

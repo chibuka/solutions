@@ -1,29 +1,30 @@
+/*
+ * hash_object.go - Compute object hash and optionally store it
+ *
+ * Usage: mygit hash-object -w <file>
+ *
+ * Reads a file, wraps it as a blob object, computes its SHA-1,
+ * and stores it in .git/objects when -w is given.
+ */
 package commands
 
 import (
 	"fmt"
 	"log"
+	"os"
 )
 
 func HandleHashObject(args []string) {
-	// we should handle flags (-w...)
 	if len(args) != 2 {
-		log.Fatalf("usage: mygit hash-object <flag> <filepath>\n")
+		log.Fatalf("usage: mygit hash-object -w <filepath>\n")
 	}
 
 	flag := args[0]
-	// TODO: for now we only support "-w" as a flag
 	if flag != "-w" {
-		log.Fatalf("flags other than -w are not supported yet\n")
+		log.Fatalf("only -w flag is supported\n")
 	}
 
-	filePath := args[1]
-
-	//
-	// TODO: we should check the object type?
-	// right now we're assuming Blob, which is false!
-	//
-	hash := writeBlob(filePath)
-
-	fmt.Println(hash)
+	content, _ := os.ReadFile(args[1])
+	sha := writeObject("blob", content)
+	fmt.Println(sha)
 }
