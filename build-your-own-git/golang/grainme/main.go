@@ -1,7 +1,7 @@
 /*
  * main.go - mygit: a minimal git implementation
  *
- * Plumbing commands: init, cat-file, hash-object, ls-tree, write-tree, commit-tree
+ * Plumbing commands: init, cat-file, hash-object, ls-tree, write-tree, commit-tree, clone
  */
 package main
 
@@ -35,6 +35,8 @@ func main() {
 		commands.HandleWriteTree()
 	case "commit-tree":
 		commands.HandleCommitTree(args)
+	case "clone":
+		commands.HandleClone(args)
 	default:
 		fmt.Println("sub-command not supported")
 	}
