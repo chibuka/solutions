@@ -1,4 +1,5 @@
 {
+  "buildcommand": "",
   "language": "go",
   "runcommand": "go run ."
 }

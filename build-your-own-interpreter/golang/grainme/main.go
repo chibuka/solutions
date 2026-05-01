@@ -26,13 +26,22 @@ func main() {
 			// output format: <token_type> <lexeme> <literal>
 			fmt.Printf("%s %s %s\n", token.Type, token.Lexeme, token.Literal)
 		}
-		fmt.Println("EOF  null")
-
 		if s.Errors {
 			os.Exit(65)
 		}
 	case "parse":
-		internal.Parse(s)
+		tokens := s.Tokenize()
+		if s.Errors {
+			os.Exit(65)
+		}
+
+		p := internal.NewParse(tokens)
+		expr, err := p.Parse()
+		if err != nil {
+			log.Fatalf("parsing went wrong %v", err)
+			os.Exit(1)
+		}
+		fmt.Printf("%s\n", expr.String())
 	default:
 		log.Fatalf("fatal error")
 	}

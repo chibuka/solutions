@@ -93,7 +93,6 @@ func (s *Scanner) scanString() (Token, bool) {
 		Type:    STRING,
 		Lexeme:  fmt.Sprintf("\"%s\"", b.String()),
 		Literal: b.String(),
-		Line:    s.Line,
 	}, true
 }
 
@@ -111,10 +110,10 @@ func (s *Scanner) scanIdentifier(first byte) Token {
 
 	val, ok := reservedWords[b.String()]
 	if ok {
-		return s.makeToken(val, b.String())
+		return s.makeToken(val, b.String(), "null")
 	}
 
-	return s.makeToken(IDENTIFIER, b.String())
+	return s.makeToken(IDENTIFIER, b.String(), "null")
 }
 
 func (s *Scanner) scanNumber(first byte) Token {
@@ -132,8 +131,7 @@ func (s *Scanner) scanNumber(first byte) Token {
 	return Token{
 		Type:    NUMBER,
 		Lexeme:  b.String(),
-		Literal: formatFloat(b.String()),
-		Line:    s.Line,
+		Literal: formatNumber(b.String()),
 	}
 }
 
@@ -143,8 +141,8 @@ func (s *Scanner) scanComment() {
 	}
 }
 
-func (s *Scanner) makeToken(t TokenType, lexeme string) Token {
-	return Token{Type: t, Lexeme: lexeme, Literal: "null", Line: s.Line}
+func (s *Scanner) makeToken(t TokenType, lexeme, literal string) Token {
+	return Token{Type: t, Lexeme: lexeme, Literal: literal}
 }
 
 func (s *Scanner) Tokenize() []Token {
@@ -154,59 +152,60 @@ func (s *Scanner) Tokenize() []Token {
 		lexeme := rune(s.advance())
 		switch lexeme {
 		case ')':
-			tokens = append(tokens, s.makeToken(RIGHT_PAREN, ")"))
+			tokens = append(tokens, s.makeToken(RIGHT_PAREN, ")", "null"))
 		case '(':
-			tokens = append(tokens, s.makeToken(LEFT_PAREN, "("))
+			tokens = append(tokens, s.makeToken(LEFT_PAREN, "(", "null"))
 		case '{':
-			tokens = append(tokens, s.makeToken(LEFT_BRACE, "{"))
+			tokens = append(tokens, s.makeToken(LEFT_BRACE, "{", "null"))
 		case '}':
-			tokens = append(tokens, s.makeToken(RIGHT_BRACE, "}"))
+			tokens = append(tokens, s.makeToken(RIGHT_BRACE, "}", "null"))
 		case '*':
-			tokens = append(tokens, s.makeToken(STAR, "*"))
+			tokens = append(tokens, s.makeToken(STAR, "*", "null"))
 		case '.':
-			tokens = append(tokens, s.makeToken(DOT, "."))
+			tokens = append(tokens, s.makeToken(DOT, ".", "null"))
 		case ',':
-			tokens = append(tokens, s.makeToken(COMMA, ","))
+			tokens = append(tokens, s.makeToken(COMMA, ",", "null"))
 		case ';':
-			tokens = append(tokens, s.makeToken(SEMICOLON, ";"))
+			tokens = append(tokens, s.makeToken(SEMICOLON, ";", "null"))
 		case '+':
-			tokens = append(tokens, s.makeToken(PLUS, "+"))
+			tokens = append(tokens, s.makeToken(PLUS, "+", "null"))
 		case '-':
-			tokens = append(tokens, s.makeToken(MINUS, "-"))
+			tokens = append(tokens, s.makeToken(MINUS, "-", "null"))
 		case '/':
 			if s.match('/') {
 				s.scanComment()
 			} else {
-				tokens = append(tokens, s.makeToken(SLASH, "/"))
+				tokens = append(tokens, s.makeToken(SLASH, "/", "null"))
 			}
 		case '=':
 			if s.match('=') {
-				tokens = append(tokens, s.makeToken(EQUAL_EQUAL, "=="))
+				tokens = append(tokens, s.makeToken(EQUAL_EQUAL, "==", "null"))
 			} else {
-				tokens = append(tokens, s.makeToken(EQUAL, "="))
+				tokens = append(tokens, s.makeToken(EQUAL, "=", "null"))
 			}
 		case '!':
 			if s.match('=') {
-				tokens = append(tokens, s.makeToken(BANG_EQUAL, "!="))
+				tokens = append(tokens, s.makeToken(BANG_EQUAL, "!=", "null"))
 			} else {
-				tokens = append(tokens, s.makeToken(BANG, "!"))
+				tokens = append(tokens, s.makeToken(BANG, "!", "null"))
 			}
 		case '<':
 			if s.match('=') {
-				tokens = append(tokens, s.makeToken(LESS_EQUAL, "<="))
+				tokens = append(tokens, s.makeToken(LESS_EQUAL, "<=", "null"))
 			} else {
-				tokens = append(tokens, s.makeToken(LESS, "<"))
+				tokens = append(tokens, s.makeToken(LESS, "<", "null"))
 			}
 		case '>':
 			if s.match('=') {
-				tokens = append(tokens, s.makeToken(GREATER_EQUAL, ">="))
+				tokens = append(tokens, s.makeToken(GREATER_EQUAL, ">=", "null"))
 			} else {
-				tokens = append(tokens, s.makeToken(GREATER, ">"))
+				tokens = append(tokens, s.makeToken(GREATER, ">", "null"))
 			}
 		case '"':
-			token, ok := s.scanString() // advance() already consumed the opening "
+			token, ok := s.scanString()
 			if !ok {
-				return tokens
+				break
+				// return tokens
 			}
 			tokens = append(tokens, token)
 		case '\n':
@@ -225,10 +224,11 @@ func (s *Scanner) Tokenize() []Token {
 			}
 		}
 	}
+	tokens = append(tokens, s.makeToken(EOF, "", "null"))
 	return tokens
 }
 
-func formatFloat(s string) string {
+func formatNumber(s string) string {
 	if !strings.Contains(s, ".") {
 		return s + ".0"
 	}

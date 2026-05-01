@@ -1,0 +1,42 @@
+[
+  {
+    "label": "Go: run package (current file's dir)",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "debug",
+    "program": "$ZED_DIRNAME",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "Go: run main.go (with args)",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "debug",
+    "program": "$ZED_WORKTREE_ROOT",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "args": ["tokenize", "test.lox"]
+  },
+  {
+    "label": "Go: debug tests in current file's package",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "test",
+    "program": "$ZED_DIRNAME",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "label": "Go: debug single test (prompt)",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "test",
+    "program": "$ZED_DIRNAME",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "args": ["-test.run", "$ZED_SYMBOL"]
+  },
+  {
+    "label": "Go: attach to running process",
+    "adapter": "Delve",
+    "request": "attach",
+    "processId": "${command:pickProcess}"
+  }
+]
